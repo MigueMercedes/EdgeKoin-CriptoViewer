@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9ce70374-8769-4ba3-b02d-ae76b2a413c4"
+      }
+    },
+    "owner": "miguemercedes"
   }
 }
