@@ -11,7 +11,10 @@ const CoinItem = ({ coin }) => {
           <Text style={style.textSymbol}>{coin.symbol}</Text>
         </View>
       </View>
-      <Text style={style.currentPrice}>${coin.current_price}</Text>
+      <View>
+        <Text style={style.currentPrice}>${coin.current_price}</Text>
+        <Text style={[style.price24h, coin.price_change_percentage_24h > 0 ? style.priceUp : style.priceDown]}>{coin.price_change_percentage_24h}</Text>
+      </View>
     </View>
   )
 }
@@ -25,7 +28,6 @@ const style = StyleSheet.create({
   },
   containerName: {
     marginLeft: 10,
-    
   },
   image: {
     width: 30,
@@ -38,6 +40,16 @@ const style = StyleSheet.create({
   },
   currentPrice: {
     color: '#fff',
+    textAlign: 'right'
+  },
+  price24h: {
+    textAlign: 'right',
+  },
+  priceUp: {
+    color: '#0f0',
+  },
+  priceDown: {
+    color: '#f00'
   },
   text: {
     color: '#fff',
@@ -45,7 +57,7 @@ const style = StyleSheet.create({
   textSymbol: {
     color: '#777',
     textTransform: 'uppercase',
-  },
+  }
 })
 
 export default CoinItem

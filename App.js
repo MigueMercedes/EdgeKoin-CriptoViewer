@@ -1,21 +1,73 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, FlatList, StyleSheet, TextInput, StatusBar } from 'react-native'
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TextInput,
+  StatusBar,
+  ActivityIndicator,
+  Button,
+} from 'react-native'
 import CoinItem from './components/CoinItem'
 
 const App = () => {
-
   const [coins, setCoins] = useState([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const loadData = async () => {
-    const resp = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd')
-    const data = await resp.json();
-
-    setCoins(data)
+  const reloadScreen = async () => {
+    setLoading(true)
+    setError(null)
+    await loadData()
+    setLoading(false)
   }
 
-  useEffect( () => {
-    loadData();
-  }, []);
+  const loadData = async () => {
+    try {
+      const resp = await fetch(
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd'
+      )
+      const data = await resp.json()
+      setCoins(data)
+    } catch (error) {
+      setError('Error fetching. Comeback later', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  useEffect(() => {
+    if (refreshing) {
+      loadData()
+      setRefreshing(false)
+    }
+  }, [refreshing])
+
+  if (loading) {
+    return (
+      <View style={style.containerLoading}>
+        <Text style={style.titleLoading}>EdgEckoin</Text>
+        <ActivityIndicator color={'#fff'} size={50} />
+      </View>
+    )
+  }
+
+  if (error) {
+    return (
+      <View style={style.containerLoading}>
+        <Text style={style.titleLoading}>EdgEckoin</Text>
+        <Text style={style.error}>{error}</Text>
+        <Button title="Reload" onPress={reloadScreen} />
+      </View>
+    )
+  }
 
   return (
     <View style={style.container}>
@@ -23,18 +75,32 @@ const App = () => {
       <View>
         <Text style={style.title}>Cripto EdgEckoin</Text>
         <TextInput
-         style={style.searchInput} 
-         placeholder='Search'
-         placeholderTextColor={'#fff'}
+          onChangeText={(text) => setSearch(text.toLowerCase())}
+          style={style.searchInput}
+          placeholder="Search"
+          placeholderTextColor={'#fff'}
         />
       </View>
-      <FlatList 
+      <FlatList
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={() => setRefreshing(true)}
         style={style.list}
-        data={coins}
-        renderItem={({item}) => {
+        data={coins.filter(
+          (coin) =>
+            coin.name.toLowerCase().includes(search) ||
+            coin.symbol.toLowerCase().includes(search)
+        )}
+        renderItem={({ item }) => {
           return <CoinItem coin={item} />
         }}
+        ListEmptyComponent={() => (
+          <View style={style.container}>
+            <Text style={{ color: '#fff', marginTop: '50%' }}>
+              No data found
+            </Text>
+          </View>
+        )}
       />
     </View>
   )
@@ -46,22 +112,37 @@ const style = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  containerLoading: {
+    backgroundColor: '#141414',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
   title: {
     color: '#fff',
-    marginTop: 5,
+    marginTop: 15,
     fontSize: 20,
-    textTransform: 'uppercase'
+    textTransform: 'uppercase',
+  },
+  titleLoading: {
+    color: '#fff',
+    marginBottom: 30,
+    fontSize: 40,
+    textTransform: 'uppercase',
   },
   list: {
-    width: '90%'
+    width: '90%',
   },
   searchInput: {
     height: 50,
     color: '#fff',
     borderBottomColor: '#4657CE',
     borderBottomWidth: 1,
-    textAlign: 'center'
-  }
+    textAlign: 'center',
+  },
+  error: {
+    color: '#f00',
+  },
 })
 
 export default App
